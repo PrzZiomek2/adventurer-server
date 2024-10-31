@@ -5,6 +5,7 @@ import compression from "compression";
 import { Client } from "pg";
 import "dotenv/config";
 import router from "./routes";
+import { runKafkaConsumer } from "./services/kafka";
 
 const app = express();
 const port = 5000;
@@ -24,19 +25,23 @@ app.use((_: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-export const client = new Client({
+export const pgData = {
   user: "postgres",
   password: process.env.PG_DB_PASSWORD,
   host: "localhost",
   port: 5432,
   database: process.env.PG_DB_NAME,
-});
+};
+
+export const client = new Client(pgData);
 
 client.connect().then(() => {
   console.log("pg database connected");
 });
 
 app.use(router);
+
+runKafkaConsumer().catch(console.error);
 
 app.listen(port, () => {
   console.log(`server listening at http://localhost:${port}`);

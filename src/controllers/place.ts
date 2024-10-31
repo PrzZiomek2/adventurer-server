@@ -25,15 +25,14 @@ export const placeClicksController = async (req: Request, res: Response) => {
             $2, 
             CASE WHEN $3 = 'map' THEN 1 ELSE 0 END, 
             CASE WHEN $3 = 'details' THEN 1 ELSE 0 END
-            
         )
-         ON CONFLICT (name)
-         DO UPDATE SET
-            count_click_map = clicks.count_click_map + 
-                (CASE WHEN EXCLUDED.count_click_map = 1 THEN 1 ELSE 0 END),
-            count_click_details = clicks.count_click_details + 
-                (CASE WHEN EXCLUDED.count_click_details = 1 THEN 1 ELSE 0 END),
-            id = EXCLUDED.id
+        ON CONFLICT (name)
+        DO UPDATE SET
+          count_click_map = clicks.count_click_map + 
+              (CASE WHEN EXCLUDED.count_click_map = 1 THEN 1 ELSE 0 END),
+          count_click_details = clicks.count_click_details + 
+              (CASE WHEN EXCLUDED.count_click_details = 1 THEN 1 ELSE 0 END),
+          id = EXCLUDED.id
     `;
 
   try {

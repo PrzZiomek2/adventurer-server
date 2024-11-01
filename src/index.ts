@@ -5,7 +5,8 @@ import compression from "compression";
 import { Client } from "pg";
 import "dotenv/config";
 import router from "./routes";
-import { runKafkaConsumer } from "./services/kafka";
+import { DbService } from "./services/postgreDb";
+import { KafkaService } from "./services/kafka";
 
 const app = express();
 const port = 5000;
@@ -33,6 +34,15 @@ export const pgData = {
   database: process.env.PG_DB_NAME,
 };
 
+const kafkaConfig = {
+  clientId: "node-click-consumer",
+  brokers: ["localhost:9092"],
+  connectionTimeout: 3000,
+  retry: {
+    retries: 5,
+  },
+};
+
 export const client = new Client(pgData);
 
 client.connect().then(() => {
@@ -41,7 +51,20 @@ client.connect().then(() => {
 
 app.use(router);
 
-runKafkaConsumer().catch(console.error);
+const runKafkaConsumer = async () => {
+  try {
+    const dbService = new DbService(pgData);
+    const kafkaService = new KafkaService(kafkaConfig, dbService);
+
+    await kafkaService.connect();
+    await kafkaService.subscribe("click-events");
+    await kafkaService.run();
+  } catch (err) {
+    console.log("Error while running kafka consumer:", err);
+  }
+};
+
+runKafkaConsumer();
 
 app.listen(port, () => {
   console.log(`server listening at http://localhost:${port}`);

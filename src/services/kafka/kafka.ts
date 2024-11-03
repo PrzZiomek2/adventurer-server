@@ -1,5 +1,5 @@
 import { Kafka, KafkaConfig } from "kafkajs";
-import { DbService } from "./postgreDb";
+import { DbService } from "../postgreSQL/postgreDb";
 
 interface Place {
   name: string;

@@ -34,19 +34,34 @@ export class DbService {
       id = EXCLUDED.id;
   `;
 
-  constructor(pgData: PoolConfig) {
-    this.pool = new Pool(pgData);
+  constructor(pgConfig: PoolConfig) {
+    this.pool = new Pool(pgConfig);
   }
 
   async init() {
-    const client = await this.pool.connect();
+    let client = null;
 
     try {
+      client = await this.pool.connect();
       await client.query(this.createClicksTableQuery);
     } catch (error) {
       console.error("Error while saving batch to database:", error);
     } finally {
-      client.release();
+      client?.release();
+    }
+  }
+
+  async getTableRows(query: string) {
+    let client = null;
+
+    try {
+      client = await this.pool.connect();
+      const res = await client.query(query);
+      return res;
+    } catch (error) {
+      console.error("Error while getting data from db:", error);
+    } finally {
+      client?.release();
     }
   }
 

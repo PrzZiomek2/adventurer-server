@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { placeClicksController } from "../controllers/place";
+import { getPlaceMostClicksController } from "../controllers/place";
 
 const router = Router();
 
-router.post("/api/place", placeClicksController);
+router.get("/api/place-most-clicks", getPlaceMostClicksController);
 
 export default router;

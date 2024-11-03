@@ -3,10 +3,11 @@ import path from "path";
 import cors from "cors";
 import compression from "compression";
 import { Client } from "pg";
-import "dotenv/config";
 import router from "./routes";
-import { DbService } from "./services/postgreDb";
-import { KafkaService } from "./services/kafka";
+import { DbService } from "./services/postgreSQL/postgreDb";
+import { KafkaService } from "./services/kafka/kafka";
+import { pgConfig } from "./services/postgreSQL/pgConfig";
+import { kafkaConfig } from "./services/kafka/kafkaConfig";
 
 const app = express();
 const port = 5000;
@@ -26,24 +27,7 @@ app.use((_: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-export const pgData = {
-  user: "postgres",
-  password: process.env.PG_DB_PASSWORD,
-  host: "localhost",
-  port: 5432,
-  database: process.env.PG_DB_NAME,
-};
-
-const kafkaConfig = {
-  clientId: "node-click-consumer",
-  brokers: ["localhost:9092"],
-  connectionTimeout: 3000,
-  retry: {
-    retries: 5,
-  },
-};
-
-export const client = new Client(pgData);
+export const client = new Client(pgConfig);
 
 client.connect().then(() => {
   console.log("pg database connected");
@@ -53,7 +37,7 @@ app.use(router);
 
 const runKafkaConsumer = async () => {
   try {
-    const dbService = new DbService(pgData);
+    const dbService = new DbService(pgConfig);
     const kafkaService = new KafkaService(kafkaConfig, dbService);
 
     await kafkaService.connect();

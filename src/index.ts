@@ -3,7 +3,7 @@ import path from "path";
 import cors from "cors";
 import compression from "compression";
 import { Client } from "pg";
-import router from "./routes";
+import { routes } from "./routes";
 import { DbService } from "./services/postgreSQL/postgreDb";
 import { KafkaService } from "./services/kafka/kafka";
 import { pgConfig } from "./services/postgreSQL/pgConfig";
@@ -33,9 +33,9 @@ client.connect().then(() => {
   console.log("pg database connected");
 });
 
-app.use(router);
+routes(app);
 
-const runKafkaConsumer = async () => {
+const runKafkaConsumer = async (): Promise<void> => {
   try {
     const dbService = new DbService(pgConfig);
     const kafkaService = new KafkaService(kafkaConfig, dbService);

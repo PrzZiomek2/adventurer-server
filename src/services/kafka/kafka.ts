@@ -1,12 +1,6 @@
 import { Kafka, KafkaConfig } from "kafkajs";
 import { DbService } from "../postgreSQL/postgreDb";
 
-interface Place {
-  name: string;
-  id: string;
-  click_location: string;
-}
-
 export class KafkaService {
   private kafka;
   private consumer;
@@ -15,7 +9,9 @@ export class KafkaService {
 
   constructor(kafkaConfig: KafkaConfig, dbService: DbService) {
     this.kafka = new Kafka(kafkaConfig);
-    this.consumer = this.kafka.consumer({ groupId: "click-group" });
+    this.consumer = this.kafka.consumer({
+      groupId: "click-group",
+    });
     this.dbService = dbService;
   }
 
@@ -31,12 +27,12 @@ export class KafkaService {
   async run() {
     await this.consumer.run({
       eachMessage: async ({ message }) => {
-        if (!message.value) return;
+        if (message.value) {
+          const clickEvent: Place = JSON.parse(message.value.toString());
+          this.clickBatch.push(clickEvent);
+        }
 
-        const clickEvent: Place = JSON.parse(message.value.toString());
-        this.clickBatch.push(clickEvent);
-
-        if (this.clickBatch.length >= 50) {
+        if (this.clickBatch.length >= 10) {
           await this.dbService.insertClicksData(this.clickBatch);
           this.clickBatch = [];
         }

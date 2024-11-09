@@ -1,8 +1,6 @@
 import { Router } from "express";
-import { getPlaceMostClicksController } from "../controllers/place";
+import { placeRouter } from "./places";
 
-const router = Router();
-
-router.get("/api/place-most-clicks", getPlaceMostClicksController);
-
-export default router;
+export const routes = (app: Router): void => {
+  placeRouter(app);
+};

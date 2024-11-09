@@ -1,29 +1,25 @@
 import { Pool, PoolConfig } from "pg";
 import "dotenv/config";
 
-interface Place {
-  name: string;
-  id: string;
-  click_location: string;
-}
-
 export class DbService {
   private pool: Pool;
   createClicksTableQuery = `
     CREATE TABLE IF NOT EXISTS clicks (
       name VARCHAR(200) PRIMARY KEY,
       id VARCHAR(100),
+      place_type VARCHAR(20),
       count_click_map INTEGER DEFAULT 0,
       count_click_details INTEGER DEFAULT 0
     );
   `;
   insertClicksDataQuery = `
-    INSERT INTO clicks (name, id, count_click_map, count_click_details) 
+    INSERT INTO clicks (name, id, place_type, count_click_map, count_click_details) 
     VALUES (
       $1, 
       $2, 
-      CASE WHEN $3 = 'map' THEN 1 ELSE 0 END, 
-      CASE WHEN $3 = 'details' THEN 1 ELSE 0 END
+      $3,
+      CASE WHEN $4 = 'map' THEN 1 ELSE 0 END, 
+      CASE WHEN $4 = 'details' THEN 1 ELSE 0 END
     )
     ON CONFLICT (name)
     DO UPDATE SET
@@ -75,10 +71,11 @@ export class DbService {
       await client.query(this.createClicksTableQuery);
 
       for (const data of clickBatch) {
-        const { name, id, click_location } = data;
+        const { name, id, place_type, click_location } = data;
         await client.query(this.insertClicksDataQuery, [
           name,
           id,
+          place_type,
           click_location,
         ]);
       }
@@ -90,3 +87,25 @@ export class DbService {
     }
   }
 }
+
+/*
+WITH clicksByPlaceType AS ( 
+	SELECT 
+		name, 
+		id, 
+		place_type,
+		ROW_NUMBER() OVER (
+      PARTITION BY place_type ORDER BY (SUM(count_click_map) + SUM(count_click_details)) DESC
+    ) AS row_n
+	FROM clicks
+	GROUP BY name, id, place_type
+)
+
+SELECT 
+	name, 
+	id, 
+	place_type
+FROM clicksByPlaceType
+WHERE row_n = 1
+
+*/

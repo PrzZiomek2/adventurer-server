@@ -18,7 +18,7 @@ const path_1 = __importDefault(require("path"));
 const cors_1 = __importDefault(require("cors"));
 const compression_1 = __importDefault(require("compression"));
 const pg_1 = require("pg");
-const routes_1 = __importDefault(require("./routes"));
+const routes_1 = require("./routes");
 const postgreDb_1 = require("./services/postgreSQL/postgreDb");
 const kafka_1 = require("./services/kafka/kafka");
 const pgConfig_1 = require("./services/postgreSQL/pgConfig");
@@ -39,7 +39,7 @@ exports.client = new pg_1.Client(pgConfig_1.pgConfig);
 exports.client.connect().then(() => {
     console.log("pg database connected");
 });
-app.use(routes_1.default);
+(0, routes_1.routes)(app);
 const runKafkaConsumer = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const dbService = new postgreDb_1.DbService(pgConfig_1.pgConfig);

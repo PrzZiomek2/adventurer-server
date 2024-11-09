@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
-import { DbService } from "../services/postgreSQL/postgreDb";
-import { pgConfig } from "../services/postgreSQL/pgConfig";
+import { DbService } from "../../services/postgreSQL/postgreDb";
+import { pgConfig } from "../../services/postgreSQL/pgConfig";
 
-export const getPlaceMostClicksController = async (
+export const getMostClicksPlaceController = async (
   req: Request,
   res: Response
-) => {
+): Promise<void> => {
   try {
     const dbService = new DbService(pgConfig);
     const dbRes = await dbService.getTableRows(`
@@ -25,7 +25,6 @@ export const getPlaceMostClicksController = async (
       place: dbRes.rows[0],
     });
   } catch (error) {
-    console.log({ error });
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
